@@ -20,6 +20,13 @@ export class DesarrolloService {
     return saved;
   }
 
+  async createMany(createDesarrolloDtos: CreateDesarrolloDto[], actor: string) {
+    const desarrollos = this.desarrolloRepository.create(createDesarrolloDtos);
+    const saved = await this.desarrolloRepository.save(desarrollos);
+    await this.logsService.create(actor, `CREA_DESARROLLO_BULK:${saved.length}`);
+    return saved;
+  }
+
   findAll() {
     return this.desarrolloRepository.find({
       order: {

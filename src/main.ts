@@ -14,8 +14,10 @@ async function bootstrap() {
     }),
   );
 
-  const port = Number(process.env.PORT ?? 3000);
+  const port = Number(process.env.PORT ?? 3001);
   await app.listen(port);
+  // Mensaje solicitado para levantar en local.
+  console.log(`🚀 Backend escuchando en puerto ${port}`);
 }
 
 void bootstrap();

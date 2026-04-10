@@ -20,6 +20,13 @@ export class FabricaService {
     return saved;
   }
 
+  async createMany(createFabricaDtos: CreateFabricaDto[], actor: string) {
+    const fabricas = this.fabricaRepository.create(createFabricaDtos);
+    const saved = await this.fabricaRepository.save(fabricas);
+    await this.logsService.create(actor, `CREA_FABRICA_BULK:${saved.length}`);
+    return saved;
+  }
+
   findAll() {
     return this.fabricaRepository.find({
       order: {

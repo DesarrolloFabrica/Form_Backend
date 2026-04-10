@@ -1,61 +1,61 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('fabrica')
+@Entity('factory_requests')
 export class Fabrica {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'tipo_requisicion', type: 'varchar', length: 120 })
+  @Column({ name: 'request_type', type: 'varchar', length: 120 })
   tipoRequisicion: string;
 
-  @Column({ name: 'cantidad_modulos', type: 'int' })
+  @Column({ name: 'module_count', type: 'int' })
   cantidadModulos: number;
 
-  @Column({ name: 'cantidad_granulos', type: 'int' })
+  @Column({ name: 'granule_count', type: 'int' })
   cantidadGranulos: number;
 
-  @Column({ name: 'materiales', type: 'text' })
+  @Column({ name: 'materials', type: 'text' })
   materiales: string;
 
-  @Column({ name: 'cantidad_materiales', type: 'int' })
+  @Column({ name: 'material_count', type: 'int' })
   cantidadMateriales: number;
 
-  @Column({ name: 'fecha_solicitud_ot', type: 'date' })
+  @Column({ name: 'work_order_request_date', type: 'date' })
   fechaSolicitudOt: string;
 
-  @Column({ name: 'solicitante', type: 'varchar', length: 160 })
+  @Column({ name: 'requester', type: 'varchar', length: 160 })
   solicitante: string;
 
-  @Column({ name: 'fecha_entrega', type: 'date' })
+  @Column({ name: 'delivery_date', type: 'date' })
   fechaEntrega: string;
 
-  @Column({ name: 'entrega_insumo', type: 'varchar', length: 160, nullable: true })
+  @Column({ name: 'input_delivery', type: 'varchar', length: 160, nullable: true })
   entregaInsumo?: string;
 
-  @Column({ name: 'enlace_insumo', type: 'text', nullable: true })
+  @Column({ name: 'input_link', type: 'text', nullable: true })
   enlaceInsumo?: string;
 
-  @Column({ name: 'tipo_paquete', type: 'varchar', length: 120 })
+  @Column({ name: 'package_type', type: 'varchar', length: 120 })
   tipoPaquete: string;
 
-  @Column({ name: 'canal_solicitud', type: 'varchar', length: 120 })
+  @Column({ name: 'request_channel', type: 'varchar', length: 120 })
   canalSolicitud: string;
 
-  @Column({ name: 'estado', type: 'varchar', length: 120 })
+  @Column({ name: 'status', type: 'varchar', length: 120 })
   estado: string;
 
-  @Column({ name: 'tipo_progreso', type: 'varchar', length: 120 })
+  @Column({ name: 'progress_type', type: 'varchar', length: 120 })
   tipoProgreso: string;
 
-  @Column({ name: 'escuela', type: 'varchar', length: 120 })
+  @Column({ name: 'school', type: 'varchar', length: 120 })
   escuela: string;
 
-  @Column({ name: 'programa', type: 'varchar', length: 120 })
+  @Column({ name: 'program', type: 'varchar', length: 120 })
   programa: string;
 
-  @Column({ name: 'modalidad', type: 'varchar', length: 120 })
+  @Column({ name: 'learning_mode', type: 'varchar', length: 120 })
   modalidad: string;
 
-  @Column({ name: 'cantidad_materias', type: 'int' })
+  @Column({ name: 'subject_count', type: 'int' })
   cantidadMaterias: number;
 }

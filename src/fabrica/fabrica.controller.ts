@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, ParseArrayPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -22,6 +22,15 @@ export class FabricaController {
   @Post()
   create(@Body() createFabricaDto: CreateFabricaDto, @Req() req: AuthenticatedRequest) {
     return this.fabricaService.create(createFabricaDto, req.user.correo);
+  }
+
+  @Post('bulk')
+  createMany(
+    @Body(new ParseArrayPipe({ items: CreateFabricaDto }))
+    createFabricaDtos: CreateFabricaDto[],
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.fabricaService.createMany(createFabricaDtos, req.user.correo);
   }
 
   @Get()

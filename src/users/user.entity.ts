@@ -1,22 +1,22 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { UserRole } from './user-role.enum';
 
-@Entity('usuarios')
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'nombre', type: 'varchar', length: 120 })
+  @Column({ name: 'name', type: 'varchar', length: 120 })
   nombre: string;
 
-  @Column({ name: 'correo', type: 'varchar', length: 160, unique: true })
+  @Column({ name: 'email', type: 'varchar', length: 160, unique: true })
   correo: string;
 
-  @Column({ name: 'contrasena', type: 'varchar', length: 255 })
+  @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   contrasenaHash: string;
 
   @Column({
-    name: 'rol',
+    name: 'role',
     type: 'enum',
     enum: UserRole,
   })

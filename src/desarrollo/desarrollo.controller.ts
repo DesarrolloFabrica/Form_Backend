@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, ParseArrayPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -22,6 +22,15 @@ export class DesarrolloController {
   @Post()
   create(@Body() createDesarrolloDto: CreateDesarrolloDto, @Req() req: AuthenticatedRequest) {
     return this.desarrolloService.create(createDesarrolloDto, req.user.correo);
+  }
+
+  @Post('bulk')
+  createMany(
+    @Body(new ParseArrayPipe({ items: CreateDesarrolloDto }))
+    createDesarrolloDtos: CreateDesarrolloDto[],
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.desarrolloService.createMany(createDesarrolloDtos, req.user.correo);
   }
 
   @Get()

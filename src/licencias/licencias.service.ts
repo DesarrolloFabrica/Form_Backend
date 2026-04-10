@@ -20,6 +20,13 @@ export class LicenciasService {
     return saved;
   }
 
+  async createMany(createLicenciaDtos: CreateLicenciaDto[], actor: string) {
+    const licencias = this.licenciaRepository.create(createLicenciaDtos);
+    const saved = await this.licenciaRepository.save(licencias);
+    await this.logsService.create(actor, `CREA_LICENCIA_BULK:${saved.length}`);
+    return saved;
+  }
+
   findAll() {
     return this.licenciaRepository.find({
       order: {
