@@ -5,11 +5,6 @@ import { LogsService } from '../logs/logs.service';
 import { CreateFabricaDto } from './dto/create-fabrica.dto';
 import { Fabrica } from './fabrica.entity';
 
-interface CreatorInfo {
-  userId: number;
-  email: string;
-}
-
 @Injectable()
 export class FabricaService {
   constructor(
@@ -18,33 +13,11 @@ export class FabricaService {
     private readonly logsService: LogsService,
   ) {}
 
-<<<<<<< HEAD
-  async create(createFabricaDto: CreateFabricaDto, creator: CreatorInfo) {
-    const fabrica = this.fabricaRepository.create({
-      ...createFabricaDto,
-      createdByUserId: creator.userId,
-      createdByEmail: creator.email,
-    });
-    const saved = await this.fabricaRepository.save(fabrica);
-    await this.logsService.create(creator.email, 'CREA_FABRICA');
-    return saved;
-  }
-
-  async createMany(createFabricaDtos: CreateFabricaDto[], creator: CreatorInfo) {
-    const fabricas = this.fabricaRepository.create(
-      createFabricaDtos.map((dto) => ({
-        ...dto,
-        createdByUserId: creator.userId,
-        createdByEmail: creator.email,
-      })),
-    );
-    const saved = await this.fabricaRepository.save(fabricas);
-    await this.logsService.create(creator.email, `CREA_FABRICA_BULK:${saved.length}`);
-=======
   async create(createFabricaDto: CreateFabricaDto, actor: string, userId: number) {
     const fabrica = this.fabricaRepository.create({
       ...createFabricaDto,
       createdByUserId: userId,
+      createdByEmail: actor,
     });
     const saved = await this.fabricaRepository.save(fabrica);
     await this.logsService.create(actor, 'CREA_FABRICA', {
@@ -61,6 +34,7 @@ export class FabricaService {
       createFabricaDtos.map((fabrica) => ({
         ...fabrica,
         createdByUserId: userId,
+        createdByEmail: actor,
       })),
     );
     const saved = await this.fabricaRepository.save(fabricas);
@@ -72,7 +46,6 @@ export class FabricaService {
         ids: saved.map((fabrica) => fabrica.id),
       },
     });
->>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
     return saved;
   }
 
