@@ -1,14 +1,20 @@
 import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({
-    origin: 'http://localhost:5173',
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
   });
-  app.setGlobalPrefix('api');
+  const defaultCorsOrigin = 'http://localhost:5173';
+  const corsOriginEnv = process.env.CORS_ORIGIN;
+  app.enableCors({
+    origin: corsOriginEnv
+      ? corsOriginEnv.split(',').map((o) => o.trim())
+      : defaultCorsOrigin,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -17,8 +23,8 @@ async function bootstrap() {
     }),
   );
 
-  const port = Number(process.env.PORT ?? 3001);
-  await app.listen(port);
+  const port = Number(process.env.PORT ?? 8080);
+  await app.listen(port, '0.0.0.0');
   // Mensaje solicitado para levantar en local.
   console.log(`🚀 Backend escuchando en puerto ${port}`);
 }

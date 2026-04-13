@@ -18,6 +18,7 @@ export class LicenciasService {
     private readonly logsService: LogsService,
   ) {}
 
+<<<<<<< HEAD
   async create(createLicenciaDto: CreateLicenciaDto, creator: CreatorInfo) {
     const licencia = this.licenciaRepository.create({
       ...createLicenciaDto,
@@ -39,6 +40,39 @@ export class LicenciasService {
     );
     const saved = await this.licenciaRepository.save(licencias);
     await this.logsService.create(creator.email, `CREA_LICENCIA_BULK:${saved.length}`);
+=======
+  async create(createLicenciaDto: CreateLicenciaDto, actor: string, userId: number) {
+    const licencia = this.licenciaRepository.create({
+      ...createLicenciaDto,
+      createdByUserId: userId,
+    });
+    const saved = await this.licenciaRepository.save(licencia);
+    await this.logsService.create(actor, 'CREA_LICENCIA', {
+      userId,
+      targetTable: 'licenses',
+      targetId: saved.id,
+      payload: createLicenciaDto as unknown as Record<string, unknown>,
+    });
+    return saved;
+  }
+
+  async createMany(createLicenciaDtos: CreateLicenciaDto[], actor: string, userId: number) {
+    const licencias = this.licenciaRepository.create(
+      createLicenciaDtos.map((licencia) => ({
+        ...licencia,
+        createdByUserId: userId,
+      })),
+    );
+    const saved = await this.licenciaRepository.save(licencias);
+    await this.logsService.create(actor, `CREA_LICENCIA_BULK:${saved.length}`, {
+      userId,
+      targetTable: 'licenses',
+      payload: {
+        count: saved.length,
+        ids: saved.map((licencia) => licencia.id),
+      },
+    });
+>>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
     return saved;
   }
 

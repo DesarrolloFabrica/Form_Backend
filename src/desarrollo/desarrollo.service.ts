@@ -18,6 +18,7 @@ export class DesarrolloService {
     private readonly logsService: LogsService,
   ) {}
 
+<<<<<<< HEAD
   async create(createDesarrolloDto: CreateDesarrolloDto, creator: CreatorInfo) {
     const desarrollo = this.desarrolloRepository.create({
       ...createDesarrolloDto,
@@ -39,6 +40,39 @@ export class DesarrolloService {
     );
     const saved = await this.desarrolloRepository.save(desarrollos);
     await this.logsService.create(creator.email, `CREA_DESARROLLO_BULK:${saved.length}`);
+=======
+  async create(createDesarrolloDto: CreateDesarrolloDto, actor: string, userId: number) {
+    const desarrollo = this.desarrolloRepository.create({
+      ...createDesarrolloDto,
+      createdByUserId: userId,
+    });
+    const saved = await this.desarrolloRepository.save(desarrollo);
+    await this.logsService.create(actor, 'CREA_DESARROLLO', {
+      userId,
+      targetTable: 'development_requests',
+      targetId: saved.id,
+      payload: createDesarrolloDto as unknown as Record<string, unknown>,
+    });
+    return saved;
+  }
+
+  async createMany(createDesarrolloDtos: CreateDesarrolloDto[], actor: string, userId: number) {
+    const desarrollos = this.desarrolloRepository.create(
+      createDesarrolloDtos.map((desarrollo) => ({
+        ...desarrollo,
+        createdByUserId: userId,
+      })),
+    );
+    const saved = await this.desarrolloRepository.save(desarrollos);
+    await this.logsService.create(actor, `CREA_DESARROLLO_BULK:${saved.length}`, {
+      userId,
+      targetTable: 'development_requests',
+      payload: {
+        count: saved.length,
+        ids: saved.map((desarrollo) => desarrollo.id),
+      },
+    });
+>>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
     return saved;
   }
 

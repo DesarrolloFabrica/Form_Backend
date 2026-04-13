@@ -22,10 +22,14 @@ export class DesarrolloController {
 
   @Post()
   create(@Body() createDesarrolloDto: CreateDesarrolloDto, @Req() req: AuthenticatedRequest) {
+<<<<<<< HEAD
     return this.desarrolloService.create(createDesarrolloDto, {
       userId: req.user.sub,
       email: req.user.correo,
     });
+=======
+    return this.desarrolloService.create(createDesarrolloDto, req.user.correo, req.user.sub);
+>>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
   }
 
   @Post('bulk')
@@ -34,10 +38,14 @@ export class DesarrolloController {
     createDesarrolloDtos: CreateDesarrolloDto[],
     @Req() req: AuthenticatedRequest,
   ) {
+<<<<<<< HEAD
     return this.desarrolloService.createMany(createDesarrolloDtos, {
       userId: req.user.sub,
       email: req.user.correo,
     });
+=======
+    return this.desarrolloService.createMany(createDesarrolloDtos, req.user.correo, req.user.sub);
+>>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
   }
 
   @Get()
