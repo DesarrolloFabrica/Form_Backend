@@ -28,4 +28,10 @@ export class Licencia {
 
   @Column({ name: 'currency', type: 'varchar', length: 12 })
   moneda: string;
+
+  @Column({ name: 'created_by_user_id', type: 'int', nullable: true })
+  createdByUserId?: number;
+
+  @Column({ name: 'created_by_email', type: 'varchar', length: 160, nullable: true })
+  createdByEmail?: string;
 }

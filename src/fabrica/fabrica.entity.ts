@@ -58,4 +58,10 @@ export class Fabrica {
 
   @Column({ name: 'subject_count', type: 'int' })
   cantidadMaterias: number;
+
+  @Column({ name: 'created_by_user_id', type: 'int', nullable: true })
+  createdByUserId?: number;
+
+  @Column({ name: 'created_by_email', type: 'varchar', length: 160, nullable: true })
+  createdByEmail?: string;
 }

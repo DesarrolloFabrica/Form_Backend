@@ -22,4 +22,10 @@ export class Desarrollo {
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   observaciones?: string;
+
+  @Column({ name: 'created_by_user_id', type: 'int', nullable: true })
+  createdByUserId?: number;
+
+  @Column({ name: 'created_by_email', type: 'varchar', length: 160, nullable: true })
+  createdByEmail?: string;
 }
