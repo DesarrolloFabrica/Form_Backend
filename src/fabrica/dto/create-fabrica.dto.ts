@@ -1,4 +1,13 @@
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreateFabricaDto {
   @IsString()
@@ -28,8 +37,9 @@ export class CreateFabricaDto {
   @IsNotEmpty()
   solicitante: string;
 
+  @ValidateIf((o) => o.fechaEntrega != null && String(o.fechaEntrega).trim() !== '')
   @IsDateString()
-  fechaEntrega: string;
+  fechaEntrega?: string;
 
   @IsOptional()
   @IsString()

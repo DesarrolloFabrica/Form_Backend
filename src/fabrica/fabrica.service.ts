@@ -14,8 +14,10 @@ export class FabricaService {
   ) {}
 
   async create(createFabricaDto: CreateFabricaDto, actor: string, userId: number) {
+    const { fechaEntrega, ...rest } = createFabricaDto;
     const fabrica = this.fabricaRepository.create({
-      ...createFabricaDto,
+      ...rest,
+      fechaEntrega: fechaEntrega?.trim() ? fechaEntrega : null,
       createdByUserId: userId,
       createdByEmail: actor,
     });
@@ -31,8 +33,9 @@ export class FabricaService {
 
   async createMany(createFabricaDtos: CreateFabricaDto[], actor: string, userId: number) {
     const fabricas = this.fabricaRepository.create(
-      createFabricaDtos.map((fabrica) => ({
+      createFabricaDtos.map(({ fechaEntrega, ...fabrica }) => ({
         ...fabrica,
+        fechaEntrega: fechaEntrega?.trim() ? fechaEntrega : null,
         createdByUserId: userId,
         createdByEmail: actor,
       })),

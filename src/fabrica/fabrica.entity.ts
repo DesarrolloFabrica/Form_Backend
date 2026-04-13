@@ -27,8 +27,8 @@ export class Fabrica {
   @Column({ name: 'requester', type: 'varchar', length: 160 })
   solicitante: string;
 
-  @Column({ name: 'delivery_date', type: 'date' })
-  fechaEntrega: string;
+  @Column({ name: 'delivery_date', type: 'date', nullable: true })
+  fechaEntrega?: string | null;
 
   @Column({ name: 'input_delivery', type: 'varchar', length: 160, nullable: true })
   entregaInsumo?: string;
