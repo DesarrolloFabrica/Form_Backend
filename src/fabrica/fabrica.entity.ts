@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from '../users/user.entity';
 
 @Entity('factory_requests')
 export class Fabrica {
@@ -58,4 +59,11 @@ export class Fabrica {
 
   @Column({ name: 'subject_count', type: 'int' })
   cantidadMaterias: number;
+
+  @Column({ name: 'created_by_user_id', type: 'int', nullable: true })
+  createdByUserId?: number;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'created_by_user_id' })
+  createdByUser?: User;
 }

@@ -9,6 +9,7 @@ import { DesarrolloService } from './desarrollo.service';
 
 interface AuthenticatedRequest extends Request {
   user: {
+    sub: number;
     correo: string;
   };
 }
@@ -21,7 +22,7 @@ export class DesarrolloController {
 
   @Post()
   create(@Body() createDesarrolloDto: CreateDesarrolloDto, @Req() req: AuthenticatedRequest) {
-    return this.desarrolloService.create(createDesarrolloDto, req.user.correo);
+    return this.desarrolloService.create(createDesarrolloDto, req.user.correo, req.user.sub);
   }
 
   @Post('bulk')
@@ -30,7 +31,7 @@ export class DesarrolloController {
     createDesarrolloDtos: CreateDesarrolloDto[],
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.desarrolloService.createMany(createDesarrolloDtos, req.user.correo);
+    return this.desarrolloService.createMany(createDesarrolloDtos, req.user.correo, req.user.sub);
   }
 
   @Get()

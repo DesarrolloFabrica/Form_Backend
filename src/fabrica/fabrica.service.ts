@@ -13,17 +13,37 @@ export class FabricaService {
     private readonly logsService: LogsService,
   ) {}
 
-  async create(createFabricaDto: CreateFabricaDto, actor: string) {
-    const fabrica = this.fabricaRepository.create(createFabricaDto);
+  async create(createFabricaDto: CreateFabricaDto, actor: string, userId: number) {
+    const fabrica = this.fabricaRepository.create({
+      ...createFabricaDto,
+      createdByUserId: userId,
+    });
     const saved = await this.fabricaRepository.save(fabrica);
-    await this.logsService.create(actor, 'CREA_FABRICA');
+    await this.logsService.create(actor, 'CREA_FABRICA', {
+      userId,
+      targetTable: 'factory_requests',
+      targetId: saved.id,
+      payload: createFabricaDto as unknown as Record<string, unknown>,
+    });
     return saved;
   }
 
-  async createMany(createFabricaDtos: CreateFabricaDto[], actor: string) {
-    const fabricas = this.fabricaRepository.create(createFabricaDtos);
+  async createMany(createFabricaDtos: CreateFabricaDto[], actor: string, userId: number) {
+    const fabricas = this.fabricaRepository.create(
+      createFabricaDtos.map((fabrica) => ({
+        ...fabrica,
+        createdByUserId: userId,
+      })),
+    );
     const saved = await this.fabricaRepository.save(fabricas);
-    await this.logsService.create(actor, `CREA_FABRICA_BULK:${saved.length}`);
+    await this.logsService.create(actor, `CREA_FABRICA_BULK:${saved.length}`, {
+      userId,
+      targetTable: 'factory_requests',
+      payload: {
+        count: saved.length,
+        ids: saved.map((fabrica) => fabrica.id),
+      },
+    });
     return saved;
   }
 

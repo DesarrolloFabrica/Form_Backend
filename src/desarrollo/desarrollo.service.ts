@@ -13,17 +13,37 @@ export class DesarrolloService {
     private readonly logsService: LogsService,
   ) {}
 
-  async create(createDesarrolloDto: CreateDesarrolloDto, actor: string) {
-    const desarrollo = this.desarrolloRepository.create(createDesarrolloDto);
+  async create(createDesarrolloDto: CreateDesarrolloDto, actor: string, userId: number) {
+    const desarrollo = this.desarrolloRepository.create({
+      ...createDesarrolloDto,
+      createdByUserId: userId,
+    });
     const saved = await this.desarrolloRepository.save(desarrollo);
-    await this.logsService.create(actor, 'CREA_DESARROLLO');
+    await this.logsService.create(actor, 'CREA_DESARROLLO', {
+      userId,
+      targetTable: 'development_requests',
+      targetId: saved.id,
+      payload: createDesarrolloDto as unknown as Record<string, unknown>,
+    });
     return saved;
   }
 
-  async createMany(createDesarrolloDtos: CreateDesarrolloDto[], actor: string) {
-    const desarrollos = this.desarrolloRepository.create(createDesarrolloDtos);
+  async createMany(createDesarrolloDtos: CreateDesarrolloDto[], actor: string, userId: number) {
+    const desarrollos = this.desarrolloRepository.create(
+      createDesarrolloDtos.map((desarrollo) => ({
+        ...desarrollo,
+        createdByUserId: userId,
+      })),
+    );
     const saved = await this.desarrolloRepository.save(desarrollos);
-    await this.logsService.create(actor, `CREA_DESARROLLO_BULK:${saved.length}`);
+    await this.logsService.create(actor, `CREA_DESARROLLO_BULK:${saved.length}`, {
+      userId,
+      targetTable: 'development_requests',
+      payload: {
+        count: saved.length,
+        ids: saved.map((desarrollo) => desarrollo.id),
+      },
+    });
     return saved;
   }
 

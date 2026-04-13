@@ -13,17 +13,37 @@ export class LicenciasService {
     private readonly logsService: LogsService,
   ) {}
 
-  async create(createLicenciaDto: CreateLicenciaDto, actor: string) {
-    const licencia = this.licenciaRepository.create(createLicenciaDto);
+  async create(createLicenciaDto: CreateLicenciaDto, actor: string, userId: number) {
+    const licencia = this.licenciaRepository.create({
+      ...createLicenciaDto,
+      createdByUserId: userId,
+    });
     const saved = await this.licenciaRepository.save(licencia);
-    await this.logsService.create(actor, 'CREA_LICENCIA');
+    await this.logsService.create(actor, 'CREA_LICENCIA', {
+      userId,
+      targetTable: 'licenses',
+      targetId: saved.id,
+      payload: createLicenciaDto as unknown as Record<string, unknown>,
+    });
     return saved;
   }
 
-  async createMany(createLicenciaDtos: CreateLicenciaDto[], actor: string) {
-    const licencias = this.licenciaRepository.create(createLicenciaDtos);
+  async createMany(createLicenciaDtos: CreateLicenciaDto[], actor: string, userId: number) {
+    const licencias = this.licenciaRepository.create(
+      createLicenciaDtos.map((licencia) => ({
+        ...licencia,
+        createdByUserId: userId,
+      })),
+    );
     const saved = await this.licenciaRepository.save(licencias);
-    await this.logsService.create(actor, `CREA_LICENCIA_BULK:${saved.length}`);
+    await this.logsService.create(actor, `CREA_LICENCIA_BULK:${saved.length}`, {
+      userId,
+      targetTable: 'licenses',
+      payload: {
+        count: saved.length,
+        ids: saved.map((licencia) => licencia.id),
+      },
+    });
     return saved;
   }
 

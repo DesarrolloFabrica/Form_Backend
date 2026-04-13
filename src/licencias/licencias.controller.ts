@@ -9,6 +9,7 @@ import { LicenciasService } from './licencias.service';
 
 interface AuthenticatedRequest extends Request {
   user: {
+    sub: number;
     correo: string;
   };
 }
@@ -21,7 +22,7 @@ export class LicenciasController {
 
   @Post()
   create(@Body() createLicenciaDto: CreateLicenciaDto, @Req() req: AuthenticatedRequest) {
-    return this.licenciasService.create(createLicenciaDto, req.user.correo);
+    return this.licenciasService.create(createLicenciaDto, req.user.correo, req.user.sub);
   }
 
   @Post('bulk')
@@ -30,7 +31,7 @@ export class LicenciasController {
     createLicenciaDtos: CreateLicenciaDto[],
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.licenciasService.createMany(createLicenciaDtos, req.user.correo);
+    return this.licenciasService.createMany(createLicenciaDtos, req.user.correo, req.user.sub);
   }
 
   @Get()
