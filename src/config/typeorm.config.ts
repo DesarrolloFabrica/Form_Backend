@@ -6,7 +6,9 @@ import { Log } from '../logs/log.entity';
 import { User } from '../users/user.entity';
 
 export function buildTypeOrmOptions(env: NodeJS.ProcessEnv): TypeOrmModuleOptions {
-  const useSsl = (env.DB_SSL ?? 'true') === 'true';
+  const isCloudSqlUnixSocket = (env.DB_HOST ?? '').startsWith('/cloudsql/');
+  const useSsl =
+    !isCloudSqlUnixSocket && (env.DB_SSL ?? 'true') === 'true';
   return {
     type: 'postgres',
     host: env.DB_HOST,
