@@ -6,11 +6,6 @@ import { LogsService } from '../logs/logs.service';
 import { CreateFabricaDto } from './dto/create-fabrica.dto';
 import { Fabrica } from './fabrica.entity';
 
-interface CreatorInfo {
-  userId: number;
-  email: string;
-}
-
 @Injectable()
 export class FabricaService {
   constructor(
@@ -19,33 +14,10 @@ export class FabricaService {
     private readonly logsService: LogsService,
   ) {}
 
-<<<<<<< HEAD
-  async create(createFabricaDto: CreateFabricaDto, creator: CreatorInfo) {
-    const fabrica = this.fabricaRepository.create({
-      ...createFabricaDto,
-      createdByUserId: creator.userId,
-      createdByEmail: creator.email,
-    });
-    const saved = await this.fabricaRepository.save(fabrica);
-    await this.logsService.create(creator.email, 'CREA_FABRICA');
-    return saved;
-  }
-
-  async createMany(createFabricaDtos: CreateFabricaDto[], creator: CreatorInfo) {
-    const fabricas = this.fabricaRepository.create(
-      createFabricaDtos.map((dto) => ({
-        ...dto,
-        createdByUserId: creator.userId,
-        createdByEmail: creator.email,
-      })),
-    );
-    const saved = await this.fabricaRepository.save(fabricas);
-    await this.logsService.create(creator.email, `CREA_FABRICA_BULK:${saved.length}`);
-=======
   async create(createFabricaDto: CreateFabricaDto, actor: string, userId: number) {
     const fabrica = this.fabricaRepository.create({
       ...createFabricaDto,
-      createdByUserId: userId,
+      createdByUser: { id: userId },
     });
     const saved = await this.fabricaRepository.save(fabrica);
     await this.logsService.create(actor, 'CREA_FABRICA', {
@@ -61,7 +33,7 @@ export class FabricaService {
     const fabricas = this.fabricaRepository.create(
       createFabricaDtos.map((fabrica) => ({
         ...fabrica,
-        createdByUserId: userId,
+        createdByUser: { id: userId },
       })),
     );
     const saved = await this.fabricaRepository.save(fabricas);
@@ -73,7 +45,6 @@ export class FabricaService {
         ids: saved.map((fabrica) => fabrica.id),
       },
     });
->>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
     return saved;
   }
 
@@ -83,6 +54,19 @@ export class FabricaService {
         id: 'DESC',
       },
     });
+  }
+
+  private formatDateOnly(value?: string): string {
+    if (!value) {
+      return '';
+    }
+
+    const parsedDate = new Date(value);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return parsedDate.toISOString().slice(0, 10);
+    }
+
+    return value.slice(0, 10);
   }
 
   async exportFactoryRequestsPdf() {
@@ -118,29 +102,94 @@ export class FabricaService {
       doc.on('error', reject);
     });
 
-    doc.fontSize(16).text('Export Factory Requests', { align: 'center' });
-    doc.moveDown();
+    const pageMargin = 40;
+    const cardPadding = 14;
+    const cardGap = 12;
+    const cardWidth = doc.page.width - pageMargin * 2;
+    const contentWidth = cardWidth - cardPadding * 2;
+    const bottomLimit = doc.page.height - pageMargin;
+
+    doc.fillColor('#0F172A').font('Helvetica-Bold').fontSize(20).text('Exportacion de solicitudes de fabrica', {
+      align: 'center',
+    });
+    doc.moveDown(0.3);
+    doc
+      .fillColor('#64748B')
+      .font('Helvetica')
+      .fontSize(10)
+      .text(`Generado el ${this.formatDateOnly(new Date().toISOString())}`, { align: 'center' });
+    doc.moveDown(1.2);
+
+    if (registros.length === 0) {
+      doc
+        .fillColor('#334155')
+        .font('Helvetica')
+        .fontSize(12)
+        .text('No hay registros para exportar.', { align: 'center' });
+      doc.end();
+      return pdfBufferPromise;
+    }
 
     registros.forEach((registro, index) => {
-      doc.fontSize(12).text(`Registro #${index + 1}`, { underline: true });
-      doc.moveDown(0.3);
-      doc.fontSize(10).text(`request_type: ${registro.tipoRequisicion ?? ''}`);
-      doc.text(`module_count: ${registro.cantidadModulos ?? ''}`);
-      doc.text(`granule_count: ${registro.cantidadGranulos ?? ''}`);
-      doc.text(`materials: ${registro.materiales ?? ''}`);
-      doc.text(`material_count: ${registro.cantidadMateriales ?? ''}`);
-      doc.text(`work_order_request_date: ${registro.fechaSolicitudOt ?? ''}`);
-      doc.text(`requester: ${registro.solicitante ?? ''}`);
-      doc.text(`delivery_date: ${registro.fechaEntrega ?? ''}`);
-      doc.text(`school: ${registro.escuela ?? ''}`);
-      doc.text(`program: ${registro.programa ?? ''}`);
-      doc.text(`status: ${registro.estado ?? ''}`);
-      doc.moveDown();
+      const campos = [
+        { label: 'Cantidad de modulos', value: String(registro.cantidadModulos ?? '-') },
+        { label: 'Cantidad de granulos', value: String(registro.cantidadGranulos ?? '-') },
+        { label: 'Materiales', value: registro.materiales ?? '-' },
+        { label: 'Cantidad de materiales', value: String(registro.cantidadMateriales ?? '-') },
+        { label: 'Fecha solicitud OT', value: this.formatDateOnly(registro.fechaSolicitudOt) || '-' },
+        { label: 'Solicitante', value: registro.solicitante ?? '-' },
+        { label: 'Fecha de entrega', value: this.formatDateOnly(registro.fechaEntrega) || '-' },
+        { label: 'Escuela', value: registro.escuela ?? '-' },
+        { label: 'Programa', value: registro.programa ?? '-' },
+        { label: 'Estado', value: registro.estado ?? '-' },
+      ];
 
-      if (index < registros.length - 1) {
-        doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke('#AAAAAA');
-        doc.moveDown();
+      const requestType = registro.tipoRequisicion ?? '-';
+      const requestTypeHeight = doc.heightOfString(requestType, {
+        width: contentWidth,
+        align: 'left',
+      });
+      const fieldsHeight = campos.reduce((acc, campo) => {
+        const labelHeight = doc.heightOfString(campo.label, { width: contentWidth });
+        const valueHeight = doc.heightOfString(campo.value, { width: contentWidth });
+        return acc + labelHeight + valueHeight + 8;
+      }, 0);
+      const cardHeight = cardPadding * 2 + 18 + requestTypeHeight + 10 + fieldsHeight;
+
+      if (doc.y + cardHeight > bottomLimit) {
+        doc.addPage();
       }
+
+      const cardX = pageMargin;
+      const cardY = doc.y;
+      doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 8).fillAndStroke('#F8FAFC', '#CBD5E1');
+
+      doc.x = cardX + cardPadding;
+      doc.y = cardY + cardPadding;
+      doc
+        .fillColor('#475569')
+        .font('Helvetica-Bold')
+        .fontSize(10)
+        .text(`Registro #${index + 1}`, { width: contentWidth });
+      doc.moveDown(0.2);
+      doc
+        .fillColor('#0B3D91')
+        .font('Helvetica-Bold')
+        .fontSize(16)
+        .text(requestType, { width: contentWidth });
+      doc.moveDown(0.5);
+
+      campos.forEach((campo) => {
+        doc.fillColor('#1D4ED8').font('Helvetica-Bold').fontSize(9).text(campo.label, {
+          width: contentWidth,
+        });
+        doc.fillColor('#111827').font('Helvetica').fontSize(11).text(campo.value, {
+          width: contentWidth,
+        });
+        doc.moveDown(0.4);
+      });
+
+      doc.y = cardY + cardHeight + cardGap;
     });
 
     doc.end();

@@ -5,7 +5,9 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-<<<<<<< HEAD
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
   const corsRaw =
     process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN ?? 'http://localhost:5173';
   const corsOrigins = corsRaw
@@ -14,17 +16,6 @@ async function bootstrap() {
     .filter(Boolean);
   app.enableCors({
     origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
-=======
-  app.setGlobalPrefix('api', {
-    exclude: [{ path: 'health', method: RequestMethod.GET }],
-  });
-  const defaultCorsOrigin = 'http://localhost:5173';
-  const corsOriginEnv = process.env.CORS_ORIGIN;
-  app.enableCors({
-    origin: corsOriginEnv
-      ? corsOriginEnv.split(',').map((o) => o.trim())
-      : defaultCorsOrigin,
->>>>>>> e472bb6b20173aa49faa7b6655436bbbcc783de4
   });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -34,11 +25,7 @@ async function bootstrap() {
     }),
   );
 
-<<<<<<< HEAD
   const port = Number(process.env.PORT ?? 3001);
-=======
-  const port = Number(process.env.PORT ?? 8080);
->>>>>>> e472bb6b20173aa49faa7b6655436bbbcc783de4
   await app.listen(port, '0.0.0.0');
   // Mensaje solicitado para levantar en local.
   console.log(`🚀 Backend escuchando en puerto ${port}`);

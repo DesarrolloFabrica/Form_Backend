@@ -30,15 +30,7 @@ export class Licencia {
   @Column({ name: 'currency', type: 'varchar', length: 12 })
   moneda: string;
 
-  @Column({ name: 'created_by_user_id', type: 'int', nullable: true })
-  createdByUserId?: number;
-
-<<<<<<< HEAD
-  @Column({ name: 'created_by_email', type: 'varchar', length: 160, nullable: true })
-  createdByEmail?: string;
-=======
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by_user_id' })
   createdByUser?: User;
->>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
 }
