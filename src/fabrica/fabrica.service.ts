@@ -6,6 +6,21 @@ import { LogsService } from '../logs/logs.service';
 import { CreateFabricaDto } from './dto/create-fabrica.dto';
 import { Fabrica } from './fabrica.entity';
 
+type FabricaPdfRecord = Pick<
+  Fabrica,
+  | 'tipoRequisicion'
+  | 'cantidadModulos'
+  | 'cantidadGranulos'
+  | 'materiales'
+  | 'cantidadMateriales'
+  | 'fechaSolicitudOt'
+  | 'solicitante'
+  | 'fechaEntrega'
+  | 'escuela'
+  | 'programa'
+  | 'estado'
+>;
+
 @Injectable()
 export class FabricaService {
   constructor(
@@ -69,6 +84,62 @@ export class FabricaService {
     return value.slice(0, 10);
   }
 
+  private formatDateForDisplay(value?: string): string {
+    return this.formatDateOnly(value) || '-';
+  }
+
+  private buildCardLines(record: FabricaPdfRecord, index: number): string[] {
+    return [
+      `Registro #${index + 1}`,
+      `Tipo de solicitud: ${record.tipoRequisicion || '-'}`,
+      `Solicitante: ${record.solicitante || '-'}`,
+      `Estado: ${record.estado || '-'}`,
+      `Escuela: ${record.escuela || '-'}`,
+      `Programa: ${record.programa || '-'}`,
+      `Materiales: ${record.materiales || '-'}`,
+      `Cantidad modulos: ${record.cantidadModulos ?? 0}`,
+      `Cantidad granulos: ${record.cantidadGranulos ?? 0}`,
+      `Cantidad materiales: ${record.cantidadMateriales ?? 0}`,
+      `Fecha solicitud OT: ${this.formatDateForDisplay(record.fechaSolicitudOt)}`,
+      `Fecha entrega: ${this.formatDateForDisplay(record.fechaEntrega)}`,
+    ];
+  }
+
+  private measureCardHeight(doc: any, lines: string[], textWidth: number): number {
+    const topPadding = 8;
+    const bottomPadding = 8;
+    const lineGap = 2;
+
+    let height = topPadding + bottomPadding;
+    lines.forEach((line, idx) => {
+      doc.font(idx === 0 ? 'Helvetica-Bold' : 'Helvetica').fontSize(idx === 0 ? 9.5 : 8.2);
+      height += doc.heightOfString(line, { width: textWidth, lineGap });
+      if (idx < lines.length - 1) {
+        height += 2;
+      }
+    });
+
+    return height;
+  }
+
+  private drawCard(doc: any, x: number, y: number, width: number, lines: string[]): void {
+    const textX = x + 8;
+    const textWidth = width - 16;
+    const lineGap = 2;
+    let currentY = y + 8;
+
+    lines.forEach((line, idx) => {
+      doc
+        .fillColor(idx === 0 ? '#0b3d91' : '#334155')
+        .font(idx === 0 ? 'Helvetica-Bold' : 'Helvetica')
+        .fontSize(idx === 0 ? 9.5 : 8.2);
+
+      const lineHeight = doc.heightOfString(line, { width: textWidth, lineGap });
+      doc.text(line, textX, currentY, { width: textWidth, lineGap });
+      currentY += lineHeight + 2;
+    });
+  }
+
   async exportFactoryRequestsPdf() {
     const registros = await this.fabricaRepository.find({
       select: {
@@ -89,11 +160,9 @@ export class FabricaService {
       },
     });
 
-    const doc = new PDFDocument({
-      margin: 40,
-      size: 'A4',
-    });
+    const records = registros as FabricaPdfRecord[];
 
+    const doc = new PDFDocument({ margin: 28, size: 'A4' });
     const chunks: Buffer[] = [];
     doc.on('data', (chunk: Buffer) => chunks.push(chunk));
 
@@ -102,95 +171,55 @@ export class FabricaService {
       doc.on('error', reject);
     });
 
-    const pageMargin = 40;
-    const cardPadding = 14;
-    const cardGap = 12;
-    const cardWidth = doc.page.width - pageMargin * 2;
-    const contentWidth = cardWidth - cardPadding * 2;
-    const bottomLimit = doc.page.height - pageMargin;
+    const margin = 28;
+    const gap = 10;
+    const pageWidth = doc.page.width - margin * 2;
+    const cardWidth = (pageWidth - gap) / 2;
+    const maxY = doc.page.height - margin;
 
-    doc.fillColor('#0F172A').font('Helvetica-Bold').fontSize(20).text('Exportacion de solicitudes de fabrica', {
-      align: 'center',
-    });
-    doc.moveDown(0.3);
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(18).text('Exportacion de solicitudes de fabrica');
     doc
-      .fillColor('#64748B')
+      .moveDown(0.2)
+      .fillColor('#64748b')
       .font('Helvetica')
-      .fontSize(10)
-      .text(`Generado el ${this.formatDateOnly(new Date().toISOString())}`, { align: 'center' });
-    doc.moveDown(1.2);
+      .fontSize(9)
+      .text(`Total registros: ${records.length}  |  Generado: ${this.formatDateForDisplay(new Date().toISOString())}`);
+    doc.moveDown(0.6);
 
-    if (registros.length === 0) {
-      doc
-        .fillColor('#334155')
-        .font('Helvetica')
-        .fontSize(12)
-        .text('No hay registros para exportar.', { align: 'center' });
+    let cursorY = doc.y;
+
+    if (records.length === 0) {
+      doc.fillColor('#334155').fontSize(11).text('No hay registros para exportar.');
       doc.end();
       return pdfBufferPromise;
     }
 
-    registros.forEach((registro, index) => {
-      const campos = [
-        { label: 'Cantidad de modulos', value: String(registro.cantidadModulos ?? '-') },
-        { label: 'Cantidad de granulos', value: String(registro.cantidadGranulos ?? '-') },
-        { label: 'Materiales', value: registro.materiales ?? '-' },
-        { label: 'Cantidad de materiales', value: String(registro.cantidadMateriales ?? '-') },
-        { label: 'Fecha solicitud OT', value: this.formatDateOnly(registro.fechaSolicitudOt) || '-' },
-        { label: 'Solicitante', value: registro.solicitante ?? '-' },
-        { label: 'Fecha de entrega', value: this.formatDateOnly(registro.fechaEntrega) || '-' },
-        { label: 'Escuela', value: registro.escuela ?? '-' },
-        { label: 'Programa', value: registro.programa ?? '-' },
-        { label: 'Estado', value: registro.estado ?? '-' },
-      ];
+    for (let i = 0; i < records.length; i += 2) {
+      const left = records[i];
+      const right = records[i + 1];
+      const leftLines = this.buildCardLines(left, i);
+      const rightLines = right ? this.buildCardLines(right, i + 1) : [];
 
-      const requestType = registro.tipoRequisicion ?? '-';
-      const requestTypeHeight = doc.heightOfString(requestType, {
-        width: contentWidth,
-        align: 'left',
-      });
-      const fieldsHeight = campos.reduce((acc, campo) => {
-        const labelHeight = doc.heightOfString(campo.label, { width: contentWidth });
-        const valueHeight = doc.heightOfString(campo.value, { width: contentWidth });
-        return acc + labelHeight + valueHeight + 8;
-      }, 0);
-      const cardHeight = cardPadding * 2 + 18 + requestTypeHeight + 10 + fieldsHeight;
+      const leftHeight = this.measureCardHeight(doc, leftLines, cardWidth - 16);
+      const rightHeight = right ? this.measureCardHeight(doc, rightLines, cardWidth - 16) : 0;
+      const rowHeight = Math.max(leftHeight, rightHeight);
 
-      if (doc.y + cardHeight > bottomLimit) {
+      if (cursorY + rowHeight > maxY) {
         doc.addPage();
+        cursorY = margin;
       }
 
-      const cardX = pageMargin;
-      const cardY = doc.y;
-      doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 8).fillAndStroke('#F8FAFC', '#CBD5E1');
+      doc.roundedRect(margin, cursorY, cardWidth, rowHeight, 6).fillAndStroke('#f8fafc', '#cbd5e1');
+      this.drawCard(doc, margin, cursorY, cardWidth, leftLines);
 
-      doc.x = cardX + cardPadding;
-      doc.y = cardY + cardPadding;
-      doc
-        .fillColor('#475569')
-        .font('Helvetica-Bold')
-        .fontSize(10)
-        .text(`Registro #${index + 1}`, { width: contentWidth });
-      doc.moveDown(0.2);
-      doc
-        .fillColor('#0B3D91')
-        .font('Helvetica-Bold')
-        .fontSize(16)
-        .text(requestType, { width: contentWidth });
-      doc.moveDown(0.5);
+      if (right) {
+        const rightX = margin + cardWidth + gap;
+        doc.roundedRect(rightX, cursorY, cardWidth, rowHeight, 6).fillAndStroke('#f8fafc', '#cbd5e1');
+        this.drawCard(doc, rightX, cursorY, cardWidth, rightLines);
+      }
 
-      campos.forEach((campo) => {
-        doc.fillColor('#1D4ED8').font('Helvetica-Bold').fontSize(9).text(campo.label, {
-          width: contentWidth,
-        });
-        doc.fillColor('#111827').font('Helvetica').fontSize(11).text(campo.value, {
-          width: contentWidth,
-        });
-        doc.moveDown(0.4);
-      });
-
-      doc.y = cardY + cardHeight + cardGap;
-    });
+      cursorY += rowHeight + gap;
+    }
 
     doc.end();
     return pdfBufferPromise;
