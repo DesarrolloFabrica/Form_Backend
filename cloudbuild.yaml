@@ -1,0 +1,57 @@
+# Cloud Build → Artifact Registry → Cloud Run
+#
+# 1) Crear repositorio Docker (una vez):
+#    gcloud artifacts repositories create REPO_NAME --repository-format=docker --location=REGION
+#
+# 2) Desplegar:
+#    gcloud builds submit --config=cloudbuild.yaml \
+#      --substitutions=_REGION=europe-west1,_REPO=form-backend,_SERVICE=form-backend
+#
+substitutions:
+  _REGION: europe-west1
+  _REPO: form-backend
+  _SERVICE: form-backend
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$BUILD_ID
+      - -t
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:latest
+      - .
+    id: build-image
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$BUILD_ID
+    id: push-build-id
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:latest
+    id: push-latest
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - $_SERVICE
+      - --image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$BUILD_ID
+      - --region=$_REGION
+      - --platform=managed
+      # Quita esta línea si quieres que solo cuentas IAM puedan invocar el servicio.
+      - --allow-unauthenticated
+      - --quiet
+    id: deploy-run
+
+images:
+  - $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$BUILD_ID
+  - $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:latest
