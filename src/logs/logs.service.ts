@@ -10,11 +10,24 @@ export class LogsService {
     private readonly logRepository: Repository<Log>,
   ) {}
 
-  create(actor: string, tipo: string) {
+  create(
+    actor: string,
+    tipo: string,
+    options?: {
+      userId?: number;
+      targetTable?: string;
+      targetId?: number;
+      payload?: Record<string, unknown>;
+    },
+  ) {
     const log = this.logRepository.create({
       actor,
       tipo,
       fechaIngreso: new Date(),
+      userId: options?.userId,
+      targetTable: options?.targetTable,
+      targetId: options?.targetId,
+      payload: options?.payload,
     });
     return this.logRepository.save(log);
   }

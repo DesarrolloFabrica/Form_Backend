@@ -8,8 +8,10 @@ import { LicenciasModule } from './licencias/licencias.module';
 import { LogsModule } from './logs/logs.module';
 import { UsersModule } from './users/users.module';
 import { buildTypeOrmOptions } from './config/typeorm.config';
+import { HealthController } from './health/health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

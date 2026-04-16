@@ -38,7 +38,11 @@ export class AuthService {
       rol: user.rol,
     };
 
-    await this.logsService.create(user.correo, 'LOGIN_EXITOSO');
+    await this.logsService.create(user.correo, 'LOGIN_EXITOSO', {
+      userId: user.id,
+      targetTable: 'users',
+      targetId: user.id,
+    });
 
     return {
       accessToken: await this.jwtService.signAsync(payload),

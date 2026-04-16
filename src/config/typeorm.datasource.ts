@@ -6,15 +6,19 @@ import { Licencia } from '../licencias/licencia.entity';
 import { Log } from '../logs/log.entity';
 import { User } from '../users/user.entity';
 
+const isCloudSqlUnixSocket = (process.env.DB_HOST ?? '').startsWith('/cloudsql/');
+const useSsl =
+  !isCloudSqlUnixSocket && (process.env.DB_SSL ?? 'true') === 'true';
+
 export default new DataSource({
-  // Cloud PostgreSQL suele requerir SSL.
+  // Cloud PostgreSQL suele requerir SSL; socket Unix de Cloud SQL no.
   type: 'postgres',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT ?? 5432),
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: (process.env.DB_SSL ?? 'true') === 'true' ? { rejectUnauthorized: false } : false,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
   entities: [User, Desarrollo, Fabrica, Licencia, Log],
   migrations: ['src/migrations/*.ts'],
 });

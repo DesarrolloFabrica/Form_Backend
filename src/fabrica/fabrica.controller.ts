@@ -9,6 +9,7 @@ import { FabricaService } from './fabrica.service';
 
 interface AuthenticatedRequest extends Request {
   user: {
+    sub: number;
     correo: string;
   };
 }
@@ -21,7 +22,14 @@ export class FabricaController {
 
   @Post()
   create(@Body() createFabricaDto: CreateFabricaDto, @Req() req: AuthenticatedRequest) {
-    return this.fabricaService.create(createFabricaDto, req.user.correo);
+<<<<<<< HEAD
+    return this.fabricaService.create(createFabricaDto, {
+      userId: req.user.sub,
+      email: req.user.correo,
+    });
+=======
+    return this.fabricaService.create(createFabricaDto, req.user.correo, req.user.sub);
+>>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
   }
 
   @Post('bulk')
@@ -30,7 +38,14 @@ export class FabricaController {
     createFabricaDtos: CreateFabricaDto[],
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.fabricaService.createMany(createFabricaDtos, req.user.correo);
+<<<<<<< HEAD
+    return this.fabricaService.createMany(createFabricaDtos, {
+      userId: req.user.sub,
+      email: req.user.correo,
+    });
+=======
+    return this.fabricaService.createMany(createFabricaDtos, req.user.correo, req.user.sub);
+>>>>>>> c054de65574d98dbf938b4ca344090ad2c8f0c0c
   }
 
   @Get()

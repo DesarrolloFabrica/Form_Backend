@@ -1,4 +1,5 @@
 node_modules
+<<<<<<< HEAD
 dist
 .git
 .env
@@ -11,3 +12,27 @@ coverage
 *.tsbuildinfo
 .cursor
 terminals
+=======
+npm-debug.log
+yarn-error.log
+dist
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+*.log
+logs
+tmp
+temp
+coverage
+.nyc_output
+.cursor
+.vscode
+.idea
+*.md
+!README.md
+.DS_Store
+Thumbs.db
+agent-transcripts
+>>>>>>> e472bb6b20173aa49faa7b6655436bbbcc783de4
